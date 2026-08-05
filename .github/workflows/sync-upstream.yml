@@ -1,0 +1,91 @@
+name: Sync upstream releases
+
+# Follows mcmilk/7-Zip-zstd releases: builds the wasm bundle from each new
+# upstream release tag and publishes a GitHub Release with the SAME tag name
+# (e.g. v26.02-v1.5.7-R2). Idempotent: skips tags already released here.
+on:
+  schedule:
+    - cron: '0 */6 * * *'   # every 6 hours
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Upstream tag to build (default: latest release)'
+        required: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve upstream tag
+        id: resolve
+        run: |
+          UPSTREAM="mcmilk/7-Zip-zstd"
+          if [ -n "${{ github.event.inputs.tag }}" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+          else
+            TAG=$(curl -s https://api.github.com/repos/$UPSTREAM/releases/latest \
+              | grep '"tag_name"' | head -1 | sed 's/.*: "\(.*\)".*/\1/')
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Building upstream tag: $TAG"
+
+      - name: Skip if already released
+        id: check
+        run: |
+          if gh release view "${{ steps.resolve.outputs.tag }}" >/dev/null 2>&1; then
+            echo "already released: ${{ steps.resolve.outputs.tag }}"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Checkout upstream tag
+        if: steps.check.outputs.skip == 'false'
+        uses: actions/checkout@v4
+        with:
+          repository: mcmilk/7-Zip-zstd
+          ref: ${{ steps.resolve.outputs.tag }}
+          path: src-7zip
+
+      - name: Set up Emscripten
+        if: steps.check.outputs.skip == 'false'
+        uses: myMindstorm/setup-emsdk@v14
+        with:
+          version: 3.1.77
+
+      - name: Build 7zz.wasm + 7zr.wasm
+        if: steps.check.outputs.skip == 'false'
+        run: |
+          ./build/build-wasm.sh --src src-7zip --out out --bundle 7zz
+          ./build/build-wasm.sh --src src-7zip --out out --bundle 7zr
+          echo "${{ steps.resolve.outputs.tag }}" > out/VERSION
+
+      - name: Test (Node)
+        if: steps.check.outputs.skip == 'false'
+        run: node test/test-wasm.js out
+
+      - name: Publish release
+        if: steps.check.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ steps.resolve.outputs.tag }}"
+          gh release create "$TAG" \
+            out/7zz.js out/7zz.wasm out/7zr.js out/7zr.wasm \
+            out/7zz-api.js out/LICENSE out/VERSION \
+            --title "7-Zip ZS $TAG (WebAssembly)" \
+            --notes "7-Zip ZS $TAG compiled to WebAssembly (multi-threaded, Emscripten).
+
+Built from upstream release: https://github.com/mcmilk/7-Zip-zstd/releases/tag/$TAG
+
+- 7zz.js/7zz.wasm: full-featured 7zz (all formats)
+- 7zr.js/7zr.wasm: minimal 7zr (7z/xz/lzma/split)
+- 7zz-api.js: JS API wrapper (createApi -> run(argv, {files, stdin}))
+- Browser: needs SharedArrayBuffer (COOP/COEP headers)
+- Node: works out of the box"

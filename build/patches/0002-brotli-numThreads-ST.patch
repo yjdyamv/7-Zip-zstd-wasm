@@ -1,0 +1,16 @@
+diff --git a/CPP/7zip/Archive/BrotliHandler.cpp b/CPP/7zip/Archive/BrotliHandler.cpp
+index a37b47da..13f738ec 100644
+--- a/CPP/7zip/Archive/BrotliHandler.cpp
++++ b/CPP/7zip/Archive/BrotliHandler.cpp
+@@ -202,7 +202,11 @@ Z7_COM7F_IMF(CHandler::Extract(const UInt32 *indices, UInt32 numItems,
+    * when -mmt is not given on this extract/test invocation. Forcing a
+    * higher count via -mmt is still honored when the container is present.
+    */
++  #ifndef Z7_ST
+   decoderSpec->SetNumberOfThreads(!_props._numThreads_WasForced ? 0 : _props._numThreads);
++  #else
++  decoderSpec->SetNumberOfThreads(0);
++  #endif
+   CMyComPtr<ICompressCoder> decoder = decoderSpec;
+   decoderSpec->SetInStream(_seqStream);
+ 

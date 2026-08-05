@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>7-Zip ZS WASM Demo</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 760px; margin: 40px auto; padding: 0 16px; color: #222; }
+  textarea { width: 100%; box-sizing: border-box; height: 90px; font-family: monospace; }
+  button { padding: 8px 16px; margin-right: 8px; }
+  pre { background: #f6f8fa; border-radius: 6px; padding: 12px; font-size: 12px; overflow: auto; }
+  #status { color: #888; font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>7-Zip ZS — WebAssembly Demo</h1>
+<p id="status">加载中…（需要 SharedArrayBuffer：服务器已发送 COOP/COEP 头）</p>
+
+<h2>输入文本</h2>
+<textarea id="input">Hello 7-Zip ZS WASM! 这是一个多线程压缩解压演示。
+Hello 7-Zip ZS WASM! 这是一个多线程压缩解压演示。
+Hello 7-Zip ZS WASM! 这是一个多线程压缩解压演示。</textarea>
+<p>
+  <button id="compress">压缩 (7z + zstd + mmt4)</button>
+  <button id="decompress">解压 -so</button>
+</p>
+
+<h2>输出</h2>
+<pre id="output">（点击按钮后显示结果）</pre>
+
+<script>
+window.onerror = function(msg, src, line) {
+  var el = document.getElementById('status');
+  if (el) el.textContent = 'ERROR: ' + msg + ' @ ' + (src || '') + ':' + line;
+};
+</script>
+<script src="/out/7zz.js"></script>
+<script src="/demo/demo.js"></script>
+</body>
+</html>

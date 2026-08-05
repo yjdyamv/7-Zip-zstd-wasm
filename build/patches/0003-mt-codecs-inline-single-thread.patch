@@ -1,0 +1,100 @@
+diff --git a/C/zstdmt/brotli-mt_compress.c b/C/zstdmt/brotli-mt_compress.c
+index 3e4be31a..8322f513 100644
+--- a/C/zstdmt/brotli-mt_compress.c
++++ b/C/zstdmt/brotli-mt_compress.c
+@@ -472,6 +472,12 @@ size_t BROTLIMT_compressCCtx(BROTLIMT_CCtx * ctx, BROTLIMT_RdWr_t * rdwr)
+ 	}
+ 
+ 	/* start all workers */
++	if (ctx->threads == 1) {
++		/* no pthreads available (e.g. wasm ST build): run inline */
++		void *p = pt_compress(&ctx->cwork[0]);
++		if (p)
++			retval_of_thread = p;
++	} else {
+ 	for (t = 0; t < ctx->threads; t++) {
+ 		cwork_t *w = &ctx->cwork[t];
+ 		pthread_create(&w->pthread, NULL, pt_compress, w);
+@@ -485,6 +491,7 @@ size_t BROTLIMT_compressCCtx(BROTLIMT_CCtx * ctx, BROTLIMT_RdWr_t * rdwr)
+ 		if (p)
+ 			retval_of_thread = p;
+ 	}
++	}
+ 
+ 	/* move remaining done/busy entries to free list */
+ 	while (!list_empty(&ctx->writelist_done)) {
+diff --git a/C/zstdmt/lizard-mt_compress.c b/C/zstdmt/lizard-mt_compress.c
+index f0b77934..6fefe2b2 100644
+--- a/C/zstdmt/lizard-mt_compress.c
++++ b/C/zstdmt/lizard-mt_compress.c
+@@ -330,6 +330,12 @@ size_t LIZARDMT_compressCCtx(LIZARDMT_CCtx * ctx, LIZARDMT_RdWr_t * rdwr)
+ 	ctx->arg_write = rdwr->arg_write;
+ 
+ 	/* start all workers */
++	if (ctx->threads == 1) {
++		/* no pthreads available (e.g. wasm ST build): run inline */
++		void *p = pt_compress(&ctx->cwork[0]);
++		if (p)
++			retval_of_thread = p;
++	} else {
+ 	for (t = 0; t < ctx->threads; t++) {
+ 		cwork_t *w = &ctx->cwork[t];
+ 		pthread_create(&w->pthread, NULL, pt_compress, w);
+@@ -343,6 +349,7 @@ size_t LIZARDMT_compressCCtx(LIZARDMT_CCtx * ctx, LIZARDMT_RdWr_t * rdwr)
+ 		if (p)
+ 			retval_of_thread = p;
+ 	}
++	}
+ 
+ 	/* move remaining done/busy entries to free list */
+ 	while (!list_empty(&ctx->writelist_done)) {
+diff --git a/C/zstdmt/lz4-mt_compress.c b/C/zstdmt/lz4-mt_compress.c
+index 95710b85..965e0a49 100644
+--- a/C/zstdmt/lz4-mt_compress.c
++++ b/C/zstdmt/lz4-mt_compress.c
+@@ -357,6 +357,12 @@ size_t LZ4MT_compressCCtx(LZ4MT_CCtx * ctx, LZ4MT_RdWr_t * rdwr)
+ 	ctx->arg_write = rdwr->arg_write;
+ 
+ 	/* start all workers */
++	if (ctx->threads == 1) {
++		/* no pthreads available (e.g. wasm ST build): run inline */
++		void *p = pt_compress(&ctx->cwork[0]);
++		if (p)
++			retval_of_thread = p;
++	} else {
+ 	for (t = 0; t < ctx->threads; t++) {
+ 		cwork_t *w = &ctx->cwork[t];
+ 		pthread_create(&w->pthread, NULL, pt_compress, w);
+@@ -370,6 +376,7 @@ size_t LZ4MT_compressCCtx(LZ4MT_CCtx * ctx, LZ4MT_RdWr_t * rdwr)
+ 		if (p)
+ 			retval_of_thread = p;
+ 	}
++	}
+ 
+ 	/* move remaining done/busy entries to free list */
+ 	while (!list_empty(&ctx->writelist_done)) {
+diff --git a/C/zstdmt/lz5-mt_compress.c b/C/zstdmt/lz5-mt_compress.c
+index 9db9d03a..4da06a6d 100644
+--- a/C/zstdmt/lz5-mt_compress.c
++++ b/C/zstdmt/lz5-mt_compress.c
+@@ -330,6 +330,12 @@ size_t LZ5MT_compressCCtx(LZ5MT_CCtx * ctx, LZ5MT_RdWr_t * rdwr)
+ 	ctx->arg_write = rdwr->arg_write;
+ 
+ 	/* start all workers */
++	if (ctx->threads == 1) {
++		/* no pthreads available (e.g. wasm ST build): run inline */
++		void *p = pt_compress(&ctx->cwork[0]);
++		if (p)
++			retval_of_thread = p;
++	} else {
+ 	for (t = 0; t < ctx->threads; t++) {
+ 		cwork_t *w = &ctx->cwork[t];
+ 		pthread_create(&w->pthread, NULL, pt_compress, w);
+@@ -343,6 +349,7 @@ size_t LZ5MT_compressCCtx(LZ5MT_CCtx * ctx, LZ5MT_RdWr_t * rdwr)
+ 		if (p)
+ 			retval_of_thread = p;
+ 	}
++	}
+ 
+ 	/* move remaining done/busy entries to free list */
+ 	while (!list_empty(&ctx->writelist_done)) {
