@@ -6,7 +6,7 @@ This repository only contains the build tooling; the source is pulled from upstr
 
 ## Features
 
-- Full-featured `7zz` (all formats: 7z, zip, tar, gzip, bzip2, xz, zstd, brotli, lz4, lz5, lizard, wim, rar read, ...) and minimal `7zr`
+- Full-featured `7zz` (all formats: 7z, zip, tar, gzip, bzip2, xz, zstd, brotli, lz4, lz5, lizard, wim, rar read, ...)
 - **Multi-threaded by default**: `-mmt` works, zstd/lz4/lz5/lizard/brotli MT codecs included
 - Memory-only I/O via the JS API: no disk access needed, files passed as `Uint8Array`
 - `-si`/`-so` stdin/stdout streaming, binary-safe capture
@@ -52,7 +52,6 @@ Requires the Emscripten SDK (emsdk, pinned in CI to 3.1.77).
 git clone https://github.com/mcmilk/7-Zip-zstd   # or any tag
 source ~/emsdk/emsdk_env.sh
 ./build/build-wasm.sh --src /path/to/7-Zip-zstd --out out --bundle 7zz
-./build/build-wasm.sh --src /path/to/7-Zip-zstd --out out --bundle 7zr
 node test/test-wasm.js out
 ```
 

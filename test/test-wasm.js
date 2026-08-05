@@ -4,7 +4,10 @@ import { createRequire } from 'module';
 import { createApi } from '../src/7zz-api.js';
 
 const require = createRequire(import.meta.url);
-const buildDir = process.argv[2] || new URL('../out/', import.meta.url).pathname;
+const { fileURLToPath } = await import('node:url');
+const { resolve } = await import('node:path');
+// resolve relative to CWD (repo root when run from CI: `node test/test-wasm.js out`)
+const buildDir = process.argv[2] ? resolve(process.argv[2]) : fileURLToPath(new URL('../out/', import.meta.url));
 
 const { default: create7zz } = await import(require.resolve(buildDir + '/7zz.js'));
 const zz = await createApi(create7zz);

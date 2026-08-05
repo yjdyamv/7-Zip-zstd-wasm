@@ -12,6 +12,10 @@ on:
         description: 'Upstream tag to build (default: latest release)'
         required: false
 
+concurrency:
+  group: sync-upstream
+  cancel-in-progress: false
+
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -27,8 +31,12 @@ jobs:
           if [ -n "${{ github.event.inputs.tag }}" ]; then
             TAG="${{ github.event.inputs.tag }}"
           else
-            TAG=$(curl -s https://api.github.com/repos/$UPSTREAM/releases/latest \
+            TAG=$(curl -sf https://api.github.com/repos/$UPSTREAM/releases/latest \
               | grep '"tag_name"' | head -1 | sed 's/.*: "\(.*\)".*/\1/')
+          fi
+          if [ -z "$TAG" ]; then
+            echo "::error::could not resolve upstream release tag"
+            exit 1
           fi
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "Building upstream tag: $TAG"
@@ -59,11 +67,10 @@ jobs:
         with:
           version: 6.0.5
 
-      - name: Build 7zz.wasm + 7zr.wasm
+      - name: Build 7zz.wasm
         if: steps.check.outputs.skip == 'false'
         run: |
           ./build/build-wasm.sh --src src-7zip --out out --bundle 7zz
-          ./build/build-wasm.sh --src src-7zip --out out --bundle 7zr
           echo "${{ steps.resolve.outputs.tag }}" > out/VERSION
 
       - name: Test (Node)
@@ -76,16 +83,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="${{ steps.resolve.outputs.tag }}"
+          NOTES="7-Zip ZS $TAG compiled to WebAssembly (multi-threaded, Emscripten).
+
+          Built from upstream release: https://github.com/mcmilk/7-Zip-zstd/releases/tag/$TAG
+
+          - 7zz.js/7zz.wasm: full-featured 7zz (all formats)
+          - 7zz-api.js: JS API wrapper (createApi -> run(argv, {files, stdin}))
+          - Browser: needs SharedArrayBuffer (COOP/COEP headers)
+          - Node: works out of the box"
           gh release create "$TAG" \
-            out/7zz.js out/7zz.wasm out/7zr.js out/7zr.wasm \
-            out/7zz-api.js out/LICENSE out/VERSION \
+            out/7zz.js out/7zz.wasm out/7zz-api.js out/LICENSE out/VERSION \
             --title "7-Zip ZS $TAG (WebAssembly)" \
-            --notes "7-Zip ZS $TAG compiled to WebAssembly (multi-threaded, Emscripten).
-
-Built from upstream release: https://github.com/mcmilk/7-Zip-zstd/releases/tag/$TAG
-
-- 7zz.js/7zz.wasm: full-featured 7zz (all formats)
-- 7zr.js/7zr.wasm: minimal 7zr (7z/xz/lzma/split)
-- 7zz-api.js: JS API wrapper (createApi -> run(argv, {files, stdin}))
-- Browser: needs SharedArrayBuffer (COOP/COEP headers)
-- Node: works out of the box"
+            --notes "$NOTES"

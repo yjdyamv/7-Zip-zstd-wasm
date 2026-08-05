@@ -44,6 +44,7 @@ esac
 # - -sSTACK_SIZE         flzma2 needs a deep stack
 # - -DACCESSPERMS=0777   glibc macro missing in emscripten's musl
 # - sysinfo shim         emscripten libc lacks sysinfo()
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CFLAGS_BASE2="-DACCESSPERMS=0777 -fwasm-exceptions -pthread"
 CXXFLAGS_BASE2="-DACCESSPERMS=0777 -fwasm-exceptions -pthread"
 LINK_FLAGS="-pthread -fwasm-exceptions -sUSE_PTHREADS=1 -sPTHREAD_POOL_SIZE=4 \
@@ -51,7 +52,8 @@ LINK_FLAGS="-pthread -fwasm-exceptions -sUSE_PTHREADS=1 -sPTHREAD_POOL_SIZE=4 \
   -sENVIRONMENT=node,web -sALLOW_MEMORY_GROWTH -sINITIAL_MEMORY=134217728 \
   -sINVOKE_RUN=0 -sEXPORTED_FUNCTIONS=_main -sEXPORTED_RUNTIME_METHODS=FS,callMain"
 
-SHIM_SRC="$(cd "$(dirname "$0")" && pwd)/patches/sysinfo_shim.c"
+SHIM_SRC="$SCRIPT_DIR/patches/sysinfo_shim.c"
+API_SRC="$SCRIPT_DIR/../src/7zz-api.js"
 
 echo "== building $BUNDLE (wasm, multi-threaded) from $SRC"
 cd "$SRC/$BUNDLE_DIR"
@@ -68,6 +70,6 @@ make CC=emcc CXX=em++ -f makefile.gcc USE_ASM=0 \
 mkdir -p "$OUT"
 cp _o/$BUNDLE "$OUT/$BUNDLE.js"
 cp _o/$BUNDLE.wasm "$OUT/$BUNDLE.wasm"
-cp "$(cd "$(dirname "$0")" && pwd)/../src/7zz-api.js" "$OUT/7zz-api.js"
+cp "$API_SRC" "$OUT/7zz-api.js"
 cp "$SRC/COPYING" "$OUT/LICENSE" 2>/dev/null || true
 echo "== done: $OUT/$BUNDLE.js + $OUT/$BUNDLE.wasm"
