@@ -18,7 +18,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Resolve upstream tag
         id: resolve
@@ -47,7 +47,7 @@ jobs:
 
       - name: Checkout upstream tag
         if: steps.check.outputs.skip == 'false'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: mcmilk/7-Zip-zstd
           ref: ${{ steps.resolve.outputs.tag }}
@@ -55,7 +55,7 @@ jobs:
 
       - name: Set up Emscripten
         if: steps.check.outputs.skip == 'false'
-        uses: myMindstorm/setup-emsdk@v14
+        uses: emscripten-core/setup-emsdk@v16
         with:
           version: 6.0.5
 
