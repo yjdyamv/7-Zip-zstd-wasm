@@ -35,6 +35,9 @@ case "$BUNDLE" in
   7zr) BUNDLE_DIR="CPP/7zip/Bundles/Alone7z" ;;
   *) echo "unknown bundle: $BUNDLE" >&2; exit 1 ;;
 esac
+# resolve to absolute paths BEFORE any cd (out is used after cd'ing into $SRC)
+SRC="$(cd "$SRC" && pwd)"
+OUT="$(mkdir -p "$OUT" && cd "$OUT" && pwd)"
 [ -d "$SRC/$BUNDLE_DIR" ] || { echo "not a 7-Zip-zstd checkout: $SRC" >&2; exit 1; }
 
 # common flags (see MT-结论.md):
