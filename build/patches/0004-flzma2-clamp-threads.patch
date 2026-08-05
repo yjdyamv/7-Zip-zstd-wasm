@@ -1,0 +1,22 @@
+diff --git a/CPP/7zip/Compress/Lzma2Encoder.cpp b/CPP/7zip/Compress/Lzma2Encoder.cpp
+--- a/CPP/7zip/Compress/Lzma2Encoder.cpp
++++ b/CPP/7zip/Compress/Lzma2Encoder.cpp
+@@ -181,9 +181,18 @@ HRESULT CFastEncoder::FastLzma2::SetCoderProperties(const PROPID *propIDs, const PROPVARIANT *coderProps, UInt32 numProps)
+   for (UInt32 i = 0; i < numProps; i++)
+   {
+     RINOK(SetLzma2Prop(propIDs[i], coderProps[i], lzma2Props));
+   }
++  // -mmt=on arrives as INT_MAX ("use all CPUs"). FL2 clamps that to its own
++  // FL2_MAXTHREADS (200) and allocates a full per-thread encoder context for
++  // each, which in the wasm build exceeds the 2 GiB memory ceiling. Normalize
++  // like stock LZMA2: auto/absurd thread counts -> one thread per CPU.
++  if (lzma2Props.numTotalThreads == -1
++      || lzma2Props.numTotalThreads > (int)FL2_MAXTHREADS)
++    lzma2Props.numTotalThreads = (int)NWindows::NSystem::GetNumberOfProcessors();
++  if (lzma2Props.numTotalThreads == 0)
++    lzma2Props.numTotalThreads = 1;
+   if (fcs == NULL) {
+     fcs = FL2_createCStreamMt(lzma2Props.numTotalThreads, 1);
+     if (fcs == NULL)
+       return E_OUTOFMEMORY;
+   }

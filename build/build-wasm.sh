@@ -59,6 +59,18 @@ SHIM_SRC="$SCRIPT_DIR/patches/sysinfo_shim.c"
 API_SRC="$SCRIPT_DIR/../src/7zz-api.js"
 
 echo "== building $BUNDLE (wasm, multi-threaded) from $SRC"
+# Apply the FLZMA2 thread-count clamp (0004). Patches 0001-0003 are
+# single-threaded-build adapters and are intentionally not applied here.
+FLZMA2_PATCH="$SCRIPT_DIR/patches/0004-flzma2-clamp-threads.patch"
+if (cd "$SRC" && git apply --check "$FLZMA2_PATCH" >/dev/null 2>&1); then
+  (cd "$SRC" && git apply "$FLZMA2_PATCH")
+  echo "== applied: $FLZMA2_PATCH"
+elif (cd "$SRC" && git apply --reverse --check "$FLZMA2_PATCH" >/dev/null 2>&1); then
+  echo "== already applied: $FLZMA2_PATCH"
+else
+  echo "== ERROR: cannot apply $FLZMA2_PATCH (source changed?)" >&2
+  exit 1
+fi
 cd "$SRC/$BUNDLE_DIR"
 rm -rf _o
 mkdir -p _o
