@@ -50,7 +50,8 @@ OUT="$(mkdir -p "$OUT" && cd "$OUT" && pwd)"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CFLAGS_BASE2="-DACCESSPERMS=0777 -fwasm-exceptions -pthread"
 CXXFLAGS_BASE2="-DACCESSPERMS=0777 -fwasm-exceptions -pthread"
-LINK_FLAGS="-pthread -fwasm-exceptions -sUSE_PTHREADS=1 -sPTHREAD_POOL_SIZE=4 \
+LINK_FLAGS="-O2 \
+  -pthread -fwasm-exceptions -sUSE_PTHREADS=1 -sPTHREAD_POOL_SIZE=4 \
   -sSTACK_SIZE=8388608 -sMODULARIZE -sEXPORT_NAME=create$BUNDLE \
   -sENVIRONMENT=node,web -sALLOW_MEMORY_GROWTH -sINITIAL_MEMORY=134217728 \
   -sINVOKE_RUN=0 -sEXPORTED_FUNCTIONS=_main -sEXPORTED_RUNTIME_METHODS=FS,callMain"
