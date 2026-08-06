@@ -71,6 +71,21 @@ else
   echo "== ERROR: cannot apply $FLZMA2_PATCH (source changed?)" >&2
   exit 1
 fi
+# Apply the FLZMA2 dictionary-size clamp (0007). On 32-bit wasm, Fast LZMA2
+# caps the dictionary at FL2_DICTSIZE_MAX (128 MiB), but the wrapper bumps
+# reduceSize by one to avoid an extra buffer shift, so streams >= 128 MiB make
+# dictSize one byte too large and FL2 rejects it with E_INVALIDARG. Clamp to
+# the library maximum so big-dict + big-file combinations work.
+FLZMA2_DICT_PATCH="$SCRIPT_DIR/patches/0007-flzma2-dictsize-max.patch"
+if (cd "$SRC" && git apply --check "$FLZMA2_DICT_PATCH" >/dev/null 2>&1); then
+  (cd "$SRC" && git apply "$FLZMA2_DICT_PATCH")
+  echo "== applied: $FLZMA2_DICT_PATCH"
+elif (cd "$SRC" && git apply --reverse --check "$FLZMA2_DICT_PATCH" >/dev/null 2>&1); then
+  echo "== already applied: $FLZMA2_DICT_PATCH"
+else
+  echo "== ERROR: cannot apply $FLZMA2_DICT_PATCH (source changed?)" >&2
+  exit 1
+fi
 cd "$SRC/$BUNDLE_DIR"
 rm -rf _o
 mkdir -p _o

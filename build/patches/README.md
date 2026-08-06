@@ -3,9 +3,15 @@
 ## Active (required for the MT build)
 
 - `sysinfo_shim.c` — provides `sysinfo()` (emscripten libc lacks it); compiled
-  into the build via `MY_LIBS`. Also `-DACCESSPERMS=0777` is passed on the
-  compile line (glibc macro missing in musl). **No source patches are applied
-  to the upstream tree for the default multi-threaded build.**
+  into the build via `MY_LIBS`. It reports the wasm heap as the system RAM
+  size. Also `-DACCESSPERMS=0777` is passed on the compile line (glibc macro
+  missing in musl).
+- `0004-flzma2-clamp-threads.patch` — clamp FLZMA2 thread counts so `-mmt=on`
+  does not exceed the wasm memory ceiling (applied by `build-wasm.sh`).
+- `0007-flzma2-dictsize-max.patch` — clamp the FLZMA2 dictionary to the
+  library's 32-bit maximum (128 MiB) so streams >= 128 MiB with a bigger
+  requested dictionary do not fail with E_INVALIDARG (applied by
+  `build-wasm.sh`).
 
 ## Historical (single-threaded / ST build only)
 
