@@ -31,6 +31,8 @@ jobs:
 
       - name: Resolve upstream tag and commit
         id: resolve
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           UPSTREAM="mcmilk/7-Zip-zstd"
           if [ -n "${{ github.event.inputs.tag }}" ]; then
