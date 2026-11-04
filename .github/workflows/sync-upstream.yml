@@ -4,9 +4,11 @@ name: Sync upstream releases
 # upstream tag and publishes a GitHub Release with the SAME tag name
 # (e.g. v26.02-v1.5.7-R2). Idempotent: skips tags already released here
 # unless manually dispatched with overwrite=true (replaces release assets).
+# The schedule only polls once a month — dispatch the workflow by hand to
+# pick up an upstream release sooner.
 on:
   schedule:
-    - cron: '0 */6 * * *'   # every 6 hours
+    - cron: '0 3 1 * *'   # monthly: 03:00 UTC on the 1st
   workflow_dispatch:
     inputs:
       tag:

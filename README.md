@@ -62,7 +62,7 @@ Build details: `ST_MODE` off (native MT build), `-pthread -sUSE_PTHREADS=1`, was
 
 ## Release automation
 
-`.github/workflows/sync-upstream.yml` polls `mcmilk/7-Zip-zstd` releases (every 6 h or manual dispatch), builds the new tag and publishes a release here under the identical tag name. `.github/workflows/ci.yml` builds and tests on every push.
+`.github/workflows/sync-upstream.yml` polls `mcmilk/7-Zip-zstd` releases (monthly, plus manual dispatch for anything needed sooner), builds the new tag and publishes a release here under the identical tag name. `.github/workflows/ci.yml` builds and tests on every push.
 
 ## Limits
 
