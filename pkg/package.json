@@ -1,0 +1,54 @@
+{
+  "name": "7zip-zstd-wasm",
+  "version": "0.0.0",
+  "description": "7-Zip ZS (zstd, brotli, lz4, lz5, lizard, Fast LZMA2) compiled to WebAssembly, multi-threaded",
+  "license": "LGPL-2.1-or-later",
+  "type": "module",
+  "main": "./index.mjs",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.mjs"
+    },
+    "./7zz.wasm": "./7zz.wasm",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.mjs",
+    "index.d.ts",
+    "7zz.cjs",
+    "7zz-api.mjs",
+    "7zz.wasm",
+    "LICENSE",
+    "VERSION"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yjdyamv/7-Zip-zstd-wasm.git"
+  },
+  "homepage": "https://github.com/yjdyamv/7-Zip-zstd-wasm#readme",
+  "bugs": {
+    "url": "https://github.com/yjdyamv/7-Zip-zstd-wasm/issues"
+  },
+  "keywords": [
+    "7zip",
+    "7z",
+    "7zz",
+    "zstd",
+    "zstandard",
+    "brotli",
+    "lz4",
+    "lz5",
+    "lizard",
+    "flzma2",
+    "wasm",
+    "webassembly",
+    "archive",
+    "compression"
+  ]
+}

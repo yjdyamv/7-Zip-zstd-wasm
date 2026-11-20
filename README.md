@@ -14,7 +14,33 @@ This repository only contains the build tooling; the source is pulled from upstr
 
 ## Usage
 
-### Node
+### npm
+
+```bash
+npm install 7zip-zstd-wasm
+```
+
+```js
+import create7zz, { createApi } from '7zip-zstd-wasm';
+
+const zz = await createApi(create7zz);
+const res = await zz.run(['a', '-tzstd', '-si', 'out.zst'], { stdin: 'hello' });
+```
+
+The package is ESM-only: CommonJS callers use `await import('7zip-zstd-wasm')`, or plain `require()` on Node >= 22.12. `7zz.cjs` is the emscripten module and `7zz-api.mjs` the wrapper; both are reachable through the entry, and `7zip-zstd-wasm/7zz.wasm` is exported for callers that serve the binary themselves.
+
+Every release records the build it came from, so a version number never has to be decoded:
+
+```js
+const pkg = await import('7zip-zstd-wasm/package.json', { with: { type: 'json' } });
+pkg.default['7zip'];
+// { upstreamTag: 'v26.05-v1.5.7-R1', upstreamCommit: '07f03a4…',
+//   revision: 1, zstd: '1.5.7', emsdk: '6.0.5', buildRepoCommit: '253e360…' }
+```
+
+### From a release tarball
+
+The three files from the Releases page work the same way without npm:
 
 ```js
 import create7zz from './7zz.js';          // MODULARIZE factory (CJS import)
@@ -46,7 +72,7 @@ See `demo/` for a working page (`node demo/server.mjs` then open http://localhos
 
 ## Build from source
 
-Requires the Emscripten SDK (emsdk, pinned in CI to 3.1.77).
+Requires the Emscripten SDK (emsdk, pinned in CI to 6.0.5 — see `build/emsdk-version`).
 
 ```bash
 git clone https://github.com/mcmilk/7-Zip-zstd   # or any tag
@@ -62,7 +88,11 @@ Build details: `ST_MODE` off (native MT build), `-pthread -sUSE_PTHREADS=1`, was
 
 ## Release automation
 
-`.github/workflows/sync-upstream.yml` polls `mcmilk/7-Zip-zstd` releases (monthly, plus manual dispatch for anything needed sooner), builds the new tag and publishes a release here under the identical tag name. `.github/workflows/ci.yml` builds and tests on every push.
+`.github/workflows/sync-upstream.yml` polls `mcmilk/7-Zip-zstd` releases (monthly, plus manual dispatch for anything needed sooner), builds the new tag, publishes a release here under the identical tag name, and then publishes the same bytes to npm. `.github/workflows/ci.yml` builds and tests on every push.
+
+npm versions are a counter, not a transcription of the tag: `v26.05-v1.5.7-R1` becomes `26.5.0` (7-Zip 26.5, first publish on that line), the next publish on the same 7-Zip line becomes `26.5.1` whichever reason it had, and `v26.06-…` restarts at `26.6.0`. Upstream's exact identity lives in the `7zip` field above. The mapping is `scripts/ci/npm-version-from-tag.sh` and it is the only place that rule exists; it also refuses to go backwards when upstream publishes a revision for an older 7-Zip line.
+
+Two npm facts the workflow has to live with: a name that does not exist yet cannot be published through the workflow's OIDC identity (npm only exchanges a trusted-publisher token for an existing package), so the very first publish of `7zip-zstd-wasm` is done by hand with a granular token; and a published version can never be replaced, so re-running a job skips whatever is already on the registry instead of failing.
 
 ## Limits
 

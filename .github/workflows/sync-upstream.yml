@@ -28,6 +28,11 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      # Exchanged for a short-lived npm credential. The package has a Trusted
+      # Publisher entry for this workflow, so no secret is stored here.
+      # The first publish of a brand new name cannot work this way — npm only
+      # accepts an OIDC exchange for a package that already exists.
+      id-token: write
     steps:
       - uses: actions/checkout@v7
 
@@ -148,3 +153,21 @@ jobs:
               --title "7-Zip ZS $TAG (WebAssembly)" \
               --notes "$NOTES"
           fi
+
+      # `npm publish` needs npm >= 11.5.1 for the OIDC exchange; the runner's
+      # preinstalled npm is older, so ask for a known Node.
+      - name: Set up Node
+        if: steps.check.outputs.skip == 'false'
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+
+      - name: Publish to npm
+        if: steps.check.outputs.skip == 'false'
+        env:
+          UPSTREAM_COMMIT: ${{ steps.resolve.outputs.commit }}
+          BUILD_REPO_COMMIT: ${{ github.sha }}
+          NPM_PUBLISH_FLAGS: --provenance
+        run: |
+          bash scripts/ci/publish-npm.sh out "${{ steps.resolve.outputs.tag }}"
