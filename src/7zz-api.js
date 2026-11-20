@@ -19,6 +19,12 @@
 const WORK_DIR = '/work';
 const FILE_SEP = '/';
 
+function sameBytes(a, b) {
+  if (!a || !b || a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
+}
+
 function toU8(data) {
   if (data instanceof Uint8Array) return data;
   if (typeof data === 'string') return new TextEncoder().encode(data);
@@ -82,7 +88,7 @@ export async function createApi(factory, opts = {}) {
         prev.mtime.getTime() === st.mtime.getTime();
       if (!sameTime) {
         const data = new Uint8Array(FS.readFile(workDir + FILE_SEP + path));
-        if (!prev || !Buffer.from(data).equals(Buffer.from(prev.data))) {
+        if (!prev || !sameBytes(data, prev.data)) {
           res[path] = data;
         }
       }
